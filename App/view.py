@@ -37,9 +37,17 @@ operación solicitada
 def printMenu():
     print("Bienvenido")
     print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("2- Consultar reproducciones basadas en una carectarestica de contenido para un rango determinado")
+    print("3- Consultar canciones segun caracteristicas de contenido con un rango determinado")
+    print("4- Consultar canciones para rangos de "+ "Intrumentalness"+" y "+ "Tempo"+ " determinados")
+    print("5- Consultar numero de canciones por genero con tempo prederteminado o genero al criterio del usuario")
 
-catalog = None
+def initCatalog():
+    return controller.newCatalog()
+    
+
+def loadData(catalog):
+    return controller.loadData(catalog)
 
 """
 Menu principal
@@ -49,9 +57,13 @@ while True:
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
         print("Cargando información de los archivos ....")
-
+        catalog = initCatalog()
+        loadData(catalog)
+        print('Eventos cargados: ' , catalog['numevent'])
+        print('Numero Artistas: ' ,lt.size(catalog['artists']))
+        print('Numero Pistas: ' ,lt.size(catalog['pistas']))
     elif int(inputs[0]) == 2:
-        pass
+        print('xd')
 
     else:
         sys.exit(0)

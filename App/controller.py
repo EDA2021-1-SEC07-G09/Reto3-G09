@@ -30,9 +30,47 @@ El controlador se encarga de mediar entre la vista y el modelo.
 """
 
 # Inicialización del Catálogo de libros
-
+def newCatalog ():
+    catalog = model.newCatalog()
+    return catalog
 # Funciones para la carga de datos
+
+def loadData (catalog):
+    songfile1 = cf.data_dir + 'Subsamples/user_track_hashtag_timestamp/user_track_hashtag_timestamp-5pct.csv'
+    input_file1 = csv.DictReader(open(songfile1, encoding='utf-8'), delimiter=",")
+    songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-5pct.csv'
+    input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'), delimiter=",")
+    lista2 = []
+    for song in input_file2:
+        lista2.append(song)
+    for song1 in input_file1:
+        ejecutar = True
+        i = 0
+        while i < len(lista2) and ejecutar == True:
+            song = model.newSong(song1, lista2[i])
+            if song != None:
+                ejecutar = False
+                model.addArtist(catalog, song)
+                model.addPista(catalog, song)
+                model.addSong(catalog, song)
+                model.newAddSong(catalog)
+            i += 1
+
+           
+        
+
 
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+def reprodByCaractRange (catalog, characteristics, range ) :
+    return  
+
+def SongsByCharactRange (catalog, characteristics, range ) :
+    return 
+
+def SongByInstruRangeAndTempoRange (catalog, characteristics, range ) :
+    return 
+
+def NumSongsByGenre (catalog, genre, range ) :
+    return 

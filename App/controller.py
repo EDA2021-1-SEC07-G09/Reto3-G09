@@ -41,21 +41,16 @@ def loadData (catalog):
     songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-small.csv'
     input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'), delimiter=",")
     model.createCharact(catalog)
-    lista2 = []
     for song in input_file2:
-        lista2.append(song)
+        model.addContextSong(catalog['contextsong'], song)
     for song in input_file1:
-        ejecutar = True
-        i = 0
-        while i < len(lista2) and ejecutar == True:
-            issong = model.newSong(song, lista2[i])
+            issong = model.songByUserId(catalog['contextsong'], song)
             if issong != None:
-                ejecutar =False
-                model.addArtist(catalog, song)
-                model.addPista(catalog, song)
-                model.addSong(catalog, song)
+                model.addArtist(catalog, issong)
+                model.addPista(catalog, issong)
+                model.addSong(catalog, issong)
                 model.newAddSong(catalog)
-            i += 1
+
            
         
 

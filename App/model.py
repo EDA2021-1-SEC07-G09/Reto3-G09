@@ -45,10 +45,15 @@ def newCatalog ():
                 'hastags': None,
                 'pistas': None,
                 'artists': None,
-                'numevent': 0}
+                'numevent': 0,
+                'contextsong': None}
     catalog['songs'] = lt.newList('ARRAY_LIST')
     catalog['pistas'] = lt.newList('ARRAY_LIST', cmpfunction = cmpBySong)
     catalog['artists'] = lt.newList('ARRAY_LIST', cmpfunction = cmpByartist)
+    catalog['contextsong'] = mp.newMap(1000000,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
 
     return catalog
 # Funciones para agregar informacion al catalogo
@@ -95,6 +100,17 @@ def addCharactSong (map, song):
         mp.put(map, pista, ltpista)
     lt.addLast(ltpista, song)
 
+def addContextSong (map, song):
+    pista = song['user_id']
+    existpista = mp.contains(map, pista)
+    if existpista:
+        entry = mp.get(map, pista)
+        ltpista = me.getValue(entry)
+    else:
+        ltpista = lt.newList('ARRAY_LIST')
+        mp.put(map, pista, ltpista)
+    lt.addLast(ltpista, song)
+
 # Funciones para creacion de datos
 def newSong (song, contexsong):
     finalsong = None
@@ -118,6 +134,22 @@ def createCharact (catalog):
 
 
 # Funciones de consulta
+def songByUserId(map, song):
+    pista = song['user_id']
+    existpista = mp.contains(map, pista)
+    issong = None
+    if existpista:
+        entry = mp.get(map, pista)
+        ltpista = me.getValue(entry)
+        ejecutar = True
+        i = 1
+        while i < lt.size(ltpista) and ejecutar == True:
+            song1 = lt.getElement(ltpista, i)
+            issong = newSong(song, song1)
+            if issong != None:
+                ejecutar = False
+            i += 1
+    return issong
 def reprodByCaractRange (catalog, characteristics, range ) :
     return  
 

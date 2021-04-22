@@ -53,23 +53,21 @@ def newCatalog ():
     return catalog
 # Funciones para agregar informacion al catalogo
 def addSong (catalog, song):
-    createCharact(catalog)
     songs = catalog['songs']
     charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
     for i in charact:
-        for j in lt.iterator(songs):
-            if j['characteristic'] == i:
-                map = j['value']
-                entry = om.get(map, song[i])
-                if entry is None:
-                    datentry = mp.newMap(1000000,
+        dataentry = mp.get(songs, i)
+        map = me.getValue(dataentry)
+        entry = om.get(map, song[i])
+        if entry is None:
+            newentry = mp.newMap(1000000,
                                 maptype='PROBING',
                                 loadfactor=0.5,
                                 comparefunction=cmpByPista)
-                    om.put(map, song[i], datentry)
-                else:
-                    datentry = me.getValue(entry)
-                addCharactSong(datentry, song)
+            om.put(map, song[i], newentry)
+        else:
+            newentry = me.getValue(entry)
+        addCharactSong(newentry, song)
 def addArtist (catalog, song):
     artist = song['artist_id']
     existartis = lt.isPresent(catalog['artists'], artist)
@@ -106,10 +104,17 @@ def newSong (song, contexsong):
     return finalsong
 
 def createCharact (catalog):
-    lista = catalog['songs']
+    catalog['songs'] =  mp.newMap(11,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
+    map = catalog['songs']
     charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
     for i in charact:
-        lt.addLast(lista,{'characteristic' : i,'value' : om.newMap(omaptype='RBT',comparefunction=cmpCharact)})
+        existcharact = mp.contains(map, i)
+        if existcharact == False:
+            entry = om.newMap(omaptype='RBT',comparefunction=cmpCharact)
+            mp.put(map, i, entry)
 
 
 # Funciones de consulta

@@ -34,22 +34,29 @@ def newCatalog ():
     catalog = model.newCatalog()
     return catalog
 # Funciones para la carga de datos
-
 def loadData (catalog):
-    songfile1 = cf.data_dir + 'Subsamples/user_track_hashtag_timestamp/user_track_hashtag_timestamp-small.csv'
+    songfile1 = cf.data_dir + 'Subsamples/user_track_hashtag_timestamp/user_track_hashtag_timestamp-50pct.csv'
     input_file1 = csv.DictReader(open(songfile1, encoding='utf-8'), delimiter=",")
-    songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-small.csv'
+    songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-50pct.csv'
     input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'), delimiter=",")
+    #songfile3 = cf.data_dir + 'Subsamples/sentiment_values.csv'
+    #input_file3 = csv.DictReader(open(songfile3, encoding='utf-8'), delimiter=",")
     model.createCharact(catalog)
+    model.createCharactSong(catalog)
     for song in input_file2:
         model.addContextSong(catalog['contextsong'], song)
     for song in input_file1:
             issong = model.songByUserId(catalog['contextsong'], song)
             if issong != None:
+                model.addSongbyCharact(catalog, issong)
                 model.addArtist(catalog, issong)
                 model.addPista(catalog, issong)
-                model.addSong(catalog, issong)
                 model.newAddSong(catalog)
+    model.addSong(catalog)
+
+
+
+
 
            
         
@@ -59,7 +66,7 @@ def loadData (catalog):
 
 # Funciones de consulta sobre el catálogo
 def reprodByCaractRange (catalog, characteristics, range ) :
-    return  
+    return  model.reprodByCaractRange(catalog, characteristics, range )
 
 def SongsByCharactRange (catalog, characteristics, range ) :
     return 

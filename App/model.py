@@ -46,45 +46,60 @@ def newCatalog ():
                 'pistas': None,
                 'artists': None,
                 'numevent': 0,
-                'contextsong': None}
-    catalog['songs'] = lt.newList('ARRAY_LIST')
-    catalog['pistas'] = lt.newList('ARRAY_LIST', cmpfunction = cmpBySong)
-    catalog['artists'] = lt.newList('ARRAY_LIST', cmpfunction = cmpByartist)
+                'contextsong': None,
+                'issong': None}
+    catalog['songs'] = mp.newMap(11,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
+    catalog['pistas'] = mp.newMap(1000000,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
+    catalog['artists'] = mp.newMap(1000000,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
     catalog['contextsong'] = mp.newMap(1000000,
                                 maptype='PROBING',
                                 loadfactor=0.5,
                                 comparefunction=cmpByPista)
+    catalog['issong'] = mp.newMap(11,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
+                                
 
     return catalog
 # Funciones para agregar informacion al catalogo
-def addSong (catalog, song):
+def addSong (catalog):
     songs = catalog['songs']
     charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
     for i in charact:
         dataentry = mp.get(songs, i)
         map = me.getValue(dataentry)
-        entry = om.get(map, song[i])
-        if entry is None:
-            newentry = mp.newMap(1000000,
-                                maptype='PROBING',
-                                loadfactor=0.5,
-                                comparefunction=cmpByPista)
-            om.put(map, song[i], newentry)
-        else:
-            newentry = me.getValue(entry)
-        addCharactSong(newentry, song)
+        dataentry2 = mp.get(catalog['issong'], i)
+        map2 = me.getValue(dataentry2)
+        for j in mp.keySet(map2):
+            entry = om.get(map, j)
+            subentry = mp.get(map2, j)
+            if subentry is not None:
+                newentry = me.getValue(subentry)
+                if entry is None:
+                    om.put(map, j, newentry)
+
 def addArtist (catalog, song):
     artist = song['artist_id']
-    existartis = lt.isPresent(catalog['artists'], artist)
-    if existartis == 0:
-        lt.addLast(catalog['artists'], artist)
+    existpista = mp.contains(catalog['artists'], artist)
+    if existpista is False:
+        mp.put(catalog['artists'], artist, 'Exist')
 
 def addPista (catalog, song):
     pista = song['track_id']
-    existpista = lt.isPresent(catalog['pistas'], pista)
-    if existpista == 0:
-        lt.addLast(catalog['pistas'], pista)
-
+    existpista = mp.contains(catalog['pistas'], pista)
+    if existpista is False:
+        mp.put(catalog['pistas'], pista, 'Exist')
+        
 def newAddSong (catalog):
     catalog['numevent'] += 1
 
@@ -120,17 +135,41 @@ def newSong (song, contexsong):
     return finalsong
 
 def createCharact (catalog):
-    catalog['songs'] =  mp.newMap(11,
-                                maptype='PROBING',
-                                loadfactor=0.5,
-                                comparefunction=cmpByPista)
     map = catalog['songs']
     charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
     for i in charact:
-        existcharact = mp.contains(map, i)
-        if existcharact == False:
-            entry = om.newMap(omaptype='RBT',comparefunction=cmpCharact)
-            mp.put(map, i, entry)
+        entry = om.newMap(omaptype='RBT',comparefunction=cmpCharact)
+        mp.put(map, i, entry)
+
+
+def createCharactSong (catalog):
+    map = catalog['issong']
+    charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
+    for i in charact:
+        entry = mp.newMap(1000000,
+                            maptype='PROBING',
+                            loadfactor=0.5,
+                            comparefunction=cmpByPista)
+        mp.put(map, i, entry)
+
+def addSongbyCharact (catalog, song):
+    charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
+    for i in charact:
+        entry = mp.get(catalog['issong'], i)
+        map = me.getValue(entry)
+        pista = song[i]
+        existpista = mp.contains(map, pista)
+        if existpista:
+            entry = mp.get(map, pista)
+            mappista = me.getValue(entry)
+        else:
+            mappista = mp.newMap(1000000,
+                            maptype='PROBING',
+                            loadfactor=0.5,
+                            comparefunction=cmpByPista)
+            mp.put(map, pista, mappista)
+        addCharactSong(mappista, song)
+
 
 
 # Funciones de consulta
@@ -151,6 +190,10 @@ def songByUserId(map, song):
             i += 1
     return issong
 def reprodByCaractRange (catalog, characteristics, range ) :
+    songs = catalog['songs']
+    dataentry = mp.get(songs, characteristics)
+    map = me.getValue(dataentry)
+    
     return  
 
 def SongsByCharactRange (catalog, characteristics, range ) :

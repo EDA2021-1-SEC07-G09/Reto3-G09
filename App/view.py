@@ -63,7 +63,15 @@ while True:
         print('Numero Artistas: ' ,lt.size(catalog['artists']))
         print('Numero Pistas: ' ,lt.size(catalog['pistas']))
     elif int(inputs[0]) == 2:
-        print('xd')
+        inputc = input('Ingrese la caracteristica: ')
+        inputm = float(input('Ingrese el valor minimo: '))
+        inputM = float(input('Ingrese el valor maximo: '))
+        controller.reprodByCaractRange(catalog, inputc, (inputm, inoutM))
+    elif int(inputs[0]) == 3:
+        print('df')
+    
+    elif int(inputs[0]) == 4:
+        print('df')
 
     else:
         sys.exit(0)

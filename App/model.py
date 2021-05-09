@@ -31,6 +31,7 @@ from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.ADT import orderedmap as om
+import random
 
 assert cf
 
@@ -42,13 +43,18 @@ los mismos.
 # Construccion de modelos
 def newCatalog ():
     catalog = {'songs' : None,
-                'hastags': None,
+                'hashtags': None,
                 'pistas': None,
                 'artists': None,
                 'numevent': 0,
-                'contextsong': None,
-                'issong': None}
+                'tracksong': None,
+                'issong': None,
+                'genre': None}
     catalog['songs'] = mp.newMap(11,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
+    catalog['hashtags'] = mp.newMap(6000,
                                 maptype='PROBING',
                                 loadfactor=0.5,
                                 comparefunction=cmpByPista)
@@ -60,11 +66,16 @@ def newCatalog ():
                                 maptype='PROBING',
                                 loadfactor=0.5,
                                 comparefunction=cmpByPista)
-    catalog['contextsong'] = mp.newMap(1000000,
+    catalog['tracksong'] = mp.newMap(1000000,
                                 maptype='PROBING',
                                 loadfactor=0.5,
                                 comparefunction=cmpByPista)
+
     catalog['issong'] = mp.newMap(11,
+                                maptype='PROBING',
+                                loadfactor=0.5,
+                                comparefunction=cmpByPista)
+    catalog['genre'] = mp.newMap(11,
                                 maptype='PROBING',
                                 loadfactor=0.5,
                                 comparefunction=cmpByPista)
@@ -74,38 +85,44 @@ def newCatalog ():
 # Funciones para agregar informacion al catalogo
 def addSong (catalog):
     songs = catalog['songs']
-    charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
+    #charact = ["created_at"]
+    charact = ["instrumentalness","danceability","tempo","energy","created_at"]
     for i in charact:
         dataentry = mp.get(songs, i)
         map = me.getValue(dataentry)
         dataentry2 = mp.get(catalog['issong'], i)
         map2 = me.getValue(dataentry2)
-        for j in mp.keySet(map2):
-            entry = om.get(map, j)
-            subentry = mp.get(map2, j)
-            if subentry is not None:
+        for j in lt.iterator(mp.keySet(map2)):
+            if j:
+                subentry = mp.get(map2, j)
                 newentry = me.getValue(subentry)
-                if entry is None:
-                    om.put(map, j, newentry)
+                om.put(map, j, newentry)
 
-def addArtist (catalog, song):
+
+def addArtist (map, song):
     artist = song['artist_id']
-    existpista = mp.contains(catalog['artists'], artist)
+    existpista = mp.contains(map, artist)
     if existpista is False:
-        mp.put(catalog['artists'], artist, 'Exist')
+        mp.put(map, artist, song)
 
-def addPista (catalog, song):
+def addPista (map, song):
     pista = song['track_id']
-    existpista = mp.contains(catalog['pistas'], pista)
+    existpista = mp.contains(map, pista)
     if existpista is False:
-        mp.put(catalog['pistas'], pista, 'Exist')
+        mp.put(map, pista, song)
         
 def newAddSong (catalog):
     catalog['numevent'] += 1
 
 
-def addCharactSong (map, song):
-    pista = song['track_id']
+def addGenre (map, genre):
+    existgenre = mp.contains(map, genre[0])
+    if existgenre is False:
+        mp.put(map, genre[0], (genre[1], genre[2]))
+
+
+def addContextSong (map, song):
+    pista = song['user_id']
     existpista = mp.contains(map, pista)
     if existpista:
         entry = mp.get(map, pista)
@@ -115,8 +132,14 @@ def addCharactSong (map, song):
         mp.put(map, pista, ltpista)
     lt.addLast(ltpista, song)
 
-def addContextSong (map, song):
-    pista = song['user_id']
+def addHashtag (map, dicc):
+    hashtag = dicc['hashtag']
+    existpista = mp.contains(map, hashtag)
+    if existpista is False:
+        mp.put(map, hashtag, dicc)
+
+def addTrack (map, song):
+    pista = song['track_id']
     existpista = mp.contains(map, pista)
     if existpista:
         entry = mp.get(map, pista)
@@ -130,13 +153,14 @@ def addContextSong (map, song):
 def newSong (song, contexsong):
     finalsong = None
     if song['user_id'] == contexsong['user_id'] and song['track_id'] == contexsong['track_id'] and song['created_at'] == contexsong['created_at']:
-            contexsong['hashtag'] = song['hashtag']
+            lt.addLast(contexsong['hashtag'], song['hashtag'])
             finalsong = contexsong
     return finalsong
 
 def createCharact (catalog):
     map = catalog['songs']
-    charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
+    #charact = ["created_at"]
+    charact = ["instrumentalness","danceability","tempo","energy","created_at"]
     for i in charact:
         entry = om.newMap(omaptype='RBT',comparefunction=cmpCharact)
         mp.put(map, i, entry)
@@ -144,66 +168,121 @@ def createCharact (catalog):
 
 def createCharactSong (catalog):
     map = catalog['issong']
-    charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
+    #charact = ["created_at"]
+    charact = ["instrumentalness","danceability","tempo","energy","created_at"]
     for i in charact:
-        entry = mp.newMap(1000000,
+        entry = mp.newMap(100000,
                             maptype='PROBING',
                             loadfactor=0.5,
                             comparefunction=cmpByPista)
         mp.put(map, i, entry)
 
 def addSongbyCharact (catalog, song):
-    charact = ["instrumentalness","liveness","speechiness","danceability","valence","loudness","tempo","acousticness","energy","mode","key"]
+    #charact = ["created_at"]
+    charact = ["instrumentalness","danceability","tempo","energy","created_at"]
     for i in charact:
         entry = mp.get(catalog['issong'], i)
         map = me.getValue(entry)
-        pista = song[i]
+        if i == "created_at":
+            hora = song[i]
+            pista = hora[11:]
+        else:
+            pista = float(song[i])
         existpista = mp.contains(map, pista)
         if existpista:
             entry = mp.get(map, pista)
-            mappista = me.getValue(entry)
+            datapista = me.getValue(entry)
         else:
-            mappista = mp.newMap(1000000,
-                            maptype='PROBING',
-                            loadfactor=0.5,
-                            comparefunction=cmpByPista)
-            mp.put(map, pista, mappista)
-        addCharactSong(mappista, song)
+            datapista = lt.newList('ARRAY_LIST')
+            mp.put(map, pista, datapista)
+        lt.addLast(datapista, song)
 
-
+def selectResults (lstvalues, num, characteristics):
+    lstresults = lt.newList('ARRAY_LIST')
+    pos = range(1,lt.size(lstvalues))
+    pos = random.sample(pos, num)
+    i = 1
+    if characteristics is not None:
+        for num in pos:
+            song = lt.getElement(lstvalues, num)
+            element = 'Track '+ str(i)+ ': '+ song['track_id']+ ' with '+ characteristics[0]+ ' of '+ song[characteristics[0]]+ ' and '+ characteristics[1]+ ' of '+ song[characteristics[1]]
+            lt.addLast(lstresults, element)
+            i += 1
+    else:
+        for num in pos:
+            song = lt.getElement(lstvalues, num)
+            element = 'Artist '+ str(i)+ ': '+ song['artist_id']
+            lt.addLast(lstresults, element)
+            i += 1
+    
+    return lstresults
 
 # Funciones de consulta
 def songByUserId(map, song):
     pista = song['user_id']
     existpista = mp.contains(map, pista)
     issong = None
-    if existpista:
+    if existpista is True:
+        song['hashtag'] = lt.newList('ARRAY_LIST')
         entry = mp.get(map, pista)
         ltpista = me.getValue(entry)
+        '''for song1 in lt.iterator(ltpista):
+            issong = newSong(song1, song)
+            if issong is not None:
+                u = lt.isPresent(ltpista, song1)
+                lt.deleteElement(ltpista, u)
+                break'''
         ejecutar = True
         i = 1
-        while i < lt.size(ltpista) and ejecutar == True:
+        while i <= lt.size(ltpista) and ejecutar == True:
             song1 = lt.getElement(ltpista, i)
-            issong = newSong(song, song1)
-            if issong != None:
+            issong = newSong(song1, song)
+            if issong is not None:
+                lt.deleteElement(ltpista, i)
                 ejecutar = False
             i += 1
     return issong
-def reprodByCaractRange (catalog, characteristics, range ) :
+
+def reprodByCharactRange (catalog, characteristics, range ) :
     songs = catalog['songs']
     dataentry = mp.get(songs, characteristics)
     map = me.getValue(dataentry)
-    
-    return  
+    lstpista = om.values(map, range[0], range[1])
+    reprod = 0
+    for value in lt.iterator(lstpista):
+        reprod += lt.size(value)
+    return (lstpista,reprod)
 
-def SongsByCharactRange (catalog, characteristics, range ) :
-    return 
+def reprodByCharactRangeLst (lstevent, characteristics, range ) :
+    lstpista = lt.newList('ARRAY_LIST')
+    for value in lt.iterator(lstevent):
+        for pista in lt.iterator(value):
+            if float(pista[characteristics]) >= range[0] and float(pista[characteristics]) <= range[1]:
+                lt.addLast(lstpista, pista)
+    return lstpista
 
-def SongByInstruRangeAndTempoRange (catalog, characteristics, range ) :
-    return 
+def unicTrackorArtist (lstevent, id):
+    map = mp.newMap(2000,
+                    maptype='PROBING',
+                    loadfactor=0.5,
+                    comparefunction=cmpByPista)
+    if lstevent['type'] == 'SINGLE_LINKED':
+        for value in lt.iterator(lstevent):
+            for song in lt.iterator(value):
+                if id == 'track_id':
+                    addPista(map, song)
+                elif id == 'artist_id':
+                    addArtist(map,song)
+    else:
+        for song in lt.iterator(lstevent):
+            if id == 'track_id':
+                addPista(map, song)
+            elif id == 'artist_id':
+                addArtist(map,song)
+    lstvalues = mp.valueSet(map)
 
-def NumSongsByGenre (catalog, genre, range ) :
-    return 
+    return (lstvalues, mp.size(map))
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 def cmpByPista(key, element):
         tagentry = me.getKey(element)
@@ -220,18 +299,5 @@ def cmpCharact(key1, key2):
         return 1
     else:
         return -1
-def cmpByartist(key1, key2):
-    if (key1 == key2):
-        return 0
-    elif (key1 > key2):
-        return 1
-    else:
-        return -1
-def cmpBySong(key1, key2):
-    if (key1 == key2):
-        return 0
-    elif (key1 > key2):
-        return 1
-    else:
-        return -1
+
 # Funciones de ordenamiento

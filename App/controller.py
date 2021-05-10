@@ -26,8 +26,7 @@ import model
 import csv
 import random
 from DISClib.ADT import list as lt
-from DISClib.ADT import map as mp
-from DISClib.DataStructures import mapentry as me
+
 
 
 """
@@ -39,6 +38,26 @@ def newCatalog ():
     catalog = model.newCatalog()
     return catalog
 # Funciones para la carga de datos
+def loadData1 (catalog):
+    songfile1 = cf.data_dir + 'Subsamples/user_track_hashtag_timestamp/user_track_hashtag_timestamp-small.csv'
+    input_file1 = csv.DictReader(open(songfile1, encoding='utf-8'), delimiter = ',')
+    songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-small.csv'
+    input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'), delimiter = ',')
+    #songfile3 = cf.data_dir + 'Subsamples/sentiment_values.csv'
+    #input_file3 = csv.DictReader(open(songfile3, encoding='utf-8'), delimiter=",")
+    model.createCharact(catalog)
+    model.createCharactSong(catalog)
+    '''for dicc in input_file3:
+        model.addHashtag(catalog['hashtags'], dicc)'''
+    for song in input_file1:
+        model.addTrack(catalog['tracksong'], song)
+    pos = 0
+    for song in input_file2:
+        issong = model.songByUserId(catalog,song, False)
+        if issong is not None:
+            if song['created_at'][11:] >= '07:15:00' and song['created_at'][11:] <= '09:45:00':
+                    pos += 1
+    return pos
 
 def loadData (catalog):
     delta_time = -1.0
@@ -59,13 +78,18 @@ def loadData (catalog):
     for dicc in input_file3:
         model.addHashtag(catalog['hashtags'], dicc)
     for song in input_file1:
-        model.addContextSong(catalog['tracksong'], song)
+        model.addTrack(catalog['tracksong'], song)
+    lstevent = lt.newList('ARRAY_LIST')
+    pos = 0
     for song in input_file2:
-        issong = model.songByUserId(catalog['tracksong'], song)
+        issong = model.songByUserId(catalog,song)
         if issong is not None:
+            pos += 1
+            if (pos in range(1,6)) or (pos in range(63229,63234)):
+                lt.addLast(lstevent, model.printEvent(issong))
             model.addSongbyCharact(catalog, issong)
             model.addArtist(catalog['artists'], issong)
-            model.addPista(catalog['pistas'], issong)
+            model.addTrackHashtag(catalog['trackhashtag'], issong)
             model.newAddSong(catalog)
     model.addSong(catalog)
     addGenre(catalog, None)
@@ -77,7 +101,7 @@ def loadData (catalog):
     delta_time = stop_time - start_time
     delta_memory = deltaMemory(start_memory, stop_memory)
 
-    return (delta_time, delta_memory)
+    return (lstevent,(delta_time, delta_memory))
 
 def addGenre (catalog, genre):
     Genre = [['Reggae',60,90],['Dowm-tempo',70,100],['Chill-out',90,120],['Hip-hop',85,115],['Jazz and Funk',120,125],['Pop',100,130],['RGB',60,80],['Rock',110,140],['Metal',100,160]]
@@ -99,7 +123,7 @@ def reprodByCharactRange (catalog, characteristics, range ) :
     start_memory = getMemory()
 
     reprod = model.reprodByCharactRange(catalog, characteristics, range)
-    result = model.unicTrackorArtist(reprod[0], 'artist_id')
+    result = model.unicTrackorArtist(catalog, reprod[0], 'artist_id')
 
     stop_memory = getMemory()
     stop_time = getTime()
@@ -122,7 +146,7 @@ def songByTwoCharactRange (catalog, characteristics, range1, range2 ):
 
     reprod = model.reprodByCharactRange(catalog, characteristics[0], range1)
     reprod = model.reprodByCharactRangeLst(reprod[0], characteristics[1], range2)
-    unictrack = model.unicTrackorArtist(reprod, 'track_id')
+    unictrack = model.unicTrackorArtist(catalog, reprod[0], 'track_id')
     result = model.selectResults(unictrack[0], 5, characteristics)
 
     stop_memory = getMemory()
@@ -134,16 +158,6 @@ def songByTwoCharactRange (catalog, characteristics, range1, range2 ):
 
     return ((unictrack[1], result), (delta_time, delta_memory))
 
-def consultByGenre (catalog, genre) :
-    entry = mp.get(catalog['genre'], genre)
-    min = me.getValue(entry)[0]
-    max = me.getValue(entry)[1]
-    reprod = model.reprodByCharactRange(catalog, 'tempo', (min, max))
-    unicartist = model.unicTrackorArtist(reprod[0], 'artist_id')
-
-
-    return ((reprod[1], unicartist[1]),model.selectResults(unicartist[0], 5, characteristics= None))
-
 def totalReprodByGenre (catalog, lstgenre):
     delta_time = -1.0
     delta_memory = -1.0
@@ -153,10 +167,8 @@ def totalReprodByGenre (catalog, lstgenre):
     start_memory = getMemory()
     reprod = 0
     for genre in lstgenre:
-        entry = mp.get(catalog['genre'], genre)
-        min = me.getValue(entry)[0]
-        max = me.getValue(entry)[1]
-        reprod += model.reprodByCharactRange(catalog, 'tempo', (min, max))[1]
+        range = model.getGenreRange(catalog, genre)
+        reprod += model.reprodByCharactRange(catalog, 'tempo', (range[0], range[1]))[1]
 
     stop_memory = getMemory()
     stop_time = getTime()
@@ -167,7 +179,7 @@ def totalReprodByGenre (catalog, lstgenre):
 
     return (reprod, (delta_time, delta_memory))
 
-def resultReprodByGenre (catalog, lstgenre):
+def consultByGenre (catalog, lstgenre) :
     delta_time = -1.0
     delta_memory = -1.0
     
@@ -176,14 +188,14 @@ def resultReprodByGenre (catalog, lstgenre):
     start_memory = getMemory()
 
     for genre in lstgenre:
-            entry = mp.get(catalog['genre'], genre)
-            min = me.getValue(entry)[0]
-            max = me.getValue(entry)[1]
-            result = consultByGenre(catalog, genre)
-            print ('For '+ genre.capitalize(), ' the tempo is between ', min, ' and ', max, ' BPM\n'+
-            genre.capitalize(), ' reproductions: ', result[0][0], ' with ', result[0][1], ' different artists\n\n',
+            range = model.getGenreRange(catalog, genre)
+            reprod = model.reprodByCharactRange(catalog, 'tempo', (range[0], range[1]))
+            unicartist = model.unicTrackorArtist(catalog, reprod[0], 'artist_id')
+            lstresult = model.selectResults(unicartist[0], 5, False)
+            print ('\nFor '+ genre.capitalize(), ' the tempo is between ', range[0], ' and ', range[1], ' BPM\n'+
+            genre.capitalize(), ' reproductions: ', reprod[1], ' with ', unicartist[1], ' different artists\n\n',
             '----- Some artists for '+ genre.capitalize()+ ' -----')
-            for value in lt.iterator(result[1]):
+            for value in lt.iterator(lstresult):
                 print (value)
 
     stop_memory = getMemory()
@@ -195,11 +207,30 @@ def resultReprodByGenre (catalog, lstgenre):
 
     return (delta_time, delta_memory)
 
-def songByInstruRangeAndTempoRange (catalog, characteristics, range ) :
-    return 
+def reprodGenreByTime (catalog, characteristics, range1):
+    delta_time = -1.0
+    delta_memory = -1.0
+    
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
 
-def sumSongsByGenre (catalog, genre, range ) :
-    return 
+    reprod = model.reprodByCharactRange(catalog, characteristics, range1)
+    reprod = model.reprodGenreByTime(catalog, reprod[0])
+    unictrack = model.unicTrackorArtist(catalog, reprod[1], 'track_id')
+    lstreprod = model.addHashtagProm(catalog, unictrack[0])
+    lstreprodsort = model.mergeSortVideos(lstreprod, lt.size(lstreprod), 'hashtag')[0]
+    lstvalues = model.selectResults(lstreprodsort, 10, True)
+    
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+
+    return (((reprod[0],lstvalues), unictrack[1]), (delta_time, delta_memory))
+
 
 def getTime():
         return float(time.perf_counter()*1000)

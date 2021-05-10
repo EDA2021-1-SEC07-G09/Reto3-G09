@@ -45,6 +45,8 @@ def printMenu():
     print("3- Consultar musica para festejar: ")
     print("4- Consultar musica para estudiar: ")
     print("5- Consultar numero de canciones por genero prederteminado o genero al criterio del usuario: ")
+    print("6- Consultar género musical más escuchado en el tiempo:")
+
 
 def initCatalog():
     return controller.newCatalog()
@@ -62,21 +64,36 @@ while True:
     if int(inputs[0]) == 1:
         print("Cargando información de los archivos ....")
         catalog = initCatalog()
+        #print(controller.loadData1(catalog))
         result = controller.loadData(catalog)
         print('Eventos cargados: ' , catalog['numevent'], '\n'
             'Numero Artistas: ' ,mp.size(catalog['artists']), '\n'
-            'Numero Pistas: ' ,mp.size(catalog['pistas']))
-        print("Tiempo [ms]: ", f"{result[0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1]:.3f}")
+            'Numero Pistas: ' ,mp.size(catalog['trackhashtag']))
+        pos = 1
+        print(lt.size(result[0]))
+        print('---5 Primeros eventos cargados---\n')
+        for event in lt.iterator(lt.subList(result[0], 1, 5)):
+            print('Event ', pos, ' : ' + event)
+            pos += 1
+        pos = 63229
+        print('\n---5 Ultimos eventos cargados---\n')
+        for event in lt.iterator(lt.subList(result[0], 6, 5)):
+            print('Event ', pos, ' : ' + event)
+            pos += 1
+        print("\nTiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
         
     elif int(inputs[0]) == 2:
-        inputc = input('Ingrese la caracteristica: ')
-        inputm = float(input('Ingrese el valor minimo: '))
-        inputM = float(input('Ingrese el valor maximo: '))
-        result = controller.reprodByCharactRange(catalog, inputc, (inputm, inputM))
-        print ('++++++ Req No. 1 results... ++++++','\n'+
-            inputc.capitalize(), ' is between ', inputm, ' and ', inputM, '\n'
-            'Total of reproduction: ', result[0][0], ' Total of unique artists: ', result[0][1])
-        print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
+        try:
+            inputc = input('Ingrese la caracteristica: ')
+            inputm = float(input('Ingrese el valor minimo: '))
+            inputM = float(input('Ingrese el valor maximo: '))
+            result = controller.reprodByCharactRange(catalog, inputc, (inputm, inputM))
+            print ('++++++ Req No. 1 results... ++++++','\n'+
+                inputc.capitalize(), ' is between ', inputm, ' and ', inputM, '\n'
+                'Total of reproduction: ', result[0][0], ' Total of unique artists: ', result[0][1])
+            print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
+        except Exception:
+            print ('Error xD')
         
         
     elif int(inputs[0]) == 3:
@@ -88,7 +105,7 @@ while True:
         print ('++++++ Req No. 2 results... ++++++','\n'
             'Energy is between ', inputm1, ' and ', inputM1, '\n'
             'Danceability is between ', inputm2, ' and ', inputM2, '\n'
-            'Total of unique tracks in events: ', result[0][0], '\n'+'\n'+'\n',
+            'Total of unique tracks in events: ', result[0][0], '\n'+'\n',
             '--- Unique track_id ---')
         for value in lt.iterator(result[0][1]):
             print (value)
@@ -103,7 +120,7 @@ while True:
         print ('++++++ Req No. 3 results... ++++++\n'
             'Instrumentalness is between ', inputm1, ' and ', inputM1, '\n'
             'Tempo is between ', inputm2, ' and ', inputM2, '\n'
-            'Total of unique tacks in events: ', result[0][0], '\n'+'\n'+'\n',
+            'Total of unique tacks in events: ', result[0][0], '\n'+'\n',
             '--- Unique track_id ---')
         for value in lt.iterator(result[0][1]):
             print (value)
@@ -124,10 +141,48 @@ while True:
         reprod = controller.totalReprodByGenre(catalog, lstgenre)
         print('++++++ Req No. 4 results... ++++++\n'
             'Total of reproductions: ', reprod[0])
-        result = controller.resultReprodByGenre(catalog, lstgenre)
+        result = controller.consultByGenre(catalog, lstgenre)
         answer = (reprod[1][0]+result[0],reprod[1][1]+result[1])
         print("Tiempo [ms]: ", f"{answer[0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{answer[1]:.3f}")
 
+    elif int(inputs[0]) == 6:
+    
+        inputm = (input('Ingrese el valor minimo para Created: '))
+        inputM = (input('Ingrese el valor maximo para Created: '))
+        result = controller.reprodGenreByTime(catalog, ('created_at'), (inputm, inputM))
+        reprod = 0
+        for tup in lt.iterator(result[0][0][0]):
+            reprod += tup[1][1]
+        print ('++++++ Req No. 5 results... ++++++\n'
+            'There is a total of ', reprod, ' reproductions between ', inputm, ' and ', inputM, '\n'
+            '====================== GENRES SORTED REPRODUCTIONS ====================== \n')
+        rank = 1
+        for tup in lt.iterator(result[0][0][0]):
+                print('TOP ', rank, ' : '+ tup[0]+ ' with ', tup[1][1], ' reps')
+                rank += 1
+        #lt.getElement(result[0][0][0],1)[1][1])
+        print ('The TOP GENRE is Metal with ', result[0][1])
+        pos = 1
+        for song in lt.iterator(result[0][0][1]):
+            if pos <= 10:
+                print(song)
+            else:
+                break
+            pos += 1
+        print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
+       
+    elif int(inputs[0]) == 7:
+        try:
+            inputc = input('Ingrese la caracteristica: ')
+            inputm = (input('Ingrese el valor minimo: '))
+            inputM = (input('Ingrese el valor maximo: '))
+            result = controller.reprodByCharactRange(catalog, inputc, (inputm, inputM))
+            print ('++++++ Req No. 1 results... ++++++','\n'+
+                inputc.capitalize(), ' is between ', inputm, ' and ', inputM, '\n'
+                'Total of reproduction: ', result[0][0], ' Total of unique artists: ', result[0][1])
+            print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
+        except Exception:
+            print ('Error xD')
     else:
         sys.exit(0)
 sys.exit(0)

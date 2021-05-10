@@ -161,7 +161,11 @@ while True:
                 print('TOP ', rank, ' : '+ tup[0]+ ' with ', tup[1][1], ' reps')
                 rank += 1
         #lt.getElement(result[0][0][0],1)[1][1])
-        print ('The TOP GENRE is Metal with ', result[0][1])
+        #result[0][1])
+        print ('The TOP GENRE is Metal with ', lt.getElement(result[0][0][0],1)[1][1], ' reproductions...\n'
+            '\n========================== Metal SENTIMENT ANALYSIS =========================\n'
+            'Metal has ', result[0][1], ' unique tracks...\nThe first TOP 10 tracks are...')
+
         pos = 1
         for song in lt.iterator(result[0][0][1]):
             if pos <= 10:

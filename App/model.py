@@ -310,7 +310,7 @@ def selectResults (lstvalues, num, characteristics):
     elif characteristics:
         while i <= 10:
             song = lt.getElement(lstvalues, i)
-            element = 'Top '+ str(i)+ ' track'+ ': '+ song['track_id']+ ' with '+ str(lt.size(song['hashtag']))+ ' and VADER = ' + str(song['hashtag_avg'])
+            element = 'Top '+ str(i)+ ' track'+ ': '+ song['track_id']+ ' with '+ str(lt.size(song['hashtag']))+ ' hashtags and VADER = ' + str(song['hashtag_avg'])
             lt.addLast(lstresults, element)
             i += 1
 

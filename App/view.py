@@ -64,7 +64,6 @@ while True:
     if int(inputs[0]) == 1:
         print("Cargando información de los archivos ....")
         catalog = initCatalog()
-        #print(controller.loadData1(catalog))
         result = controller.loadData(catalog)
         print('Eventos cargados: ' , catalog['numevent'], '\n'
             'Numero Artistas: ' ,mp.size(catalog['artists']), '\n'
@@ -93,7 +92,7 @@ while True:
                 'Total of reproduction: ', result[0][0], ' Total of unique artists: ', result[0][1])
             print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
         except Exception:
-            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelv a intentarlo.')
+            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelva a intentarlo.')
         
         
     elif int(inputs[0]) == 3:
@@ -112,7 +111,7 @@ while True:
                 print (value)
             print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
         except Exception:
-            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelv a intentarlo.')
+            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelva a intentarlo.')
     elif int(inputs[0]) == 4:
         try:
             inputm1 = float(input('Ingrese el valor minimo para Instrumentalness: '))
@@ -129,7 +128,7 @@ while True:
                 print (value)
             print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
         except Exception:
-            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelv a intentarlo.')
+            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelva a intentarlo.')
     elif int(inputs[0]) == 5:
         try:
             print ('Lista de generos:\n- Reggae\n- Dowm-tempo\n- Chill-out\n- Hip-hop\n- Jazz and Funk\n- Pop\n'
@@ -150,7 +149,7 @@ while True:
             answer = (reprod[1][0]+result[0],reprod[1][1]+result[1])
             print("Tiempo [ms]: ", f"{answer[0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{answer[1]:.3f}")
         except Exception:
-            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelv a intentarlo.')
+            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelva a intentarlo.')
     elif int(inputs[0]) == 6:
         try:
             inputm = (input('Ingrese el valor minimo para Created: '))
@@ -169,7 +168,6 @@ while True:
             print ('The TOP GENRE is Metal with ', lt.getElement(result[0][0][0],1)[1][1], ' reproductions...\n'
                 '\n========================== Metal SENTIMENT ANALYSIS =========================\n'
                 'Metal has ', result[0][1], ' unique tracks...\nThe first TOP 10 tracks are...')
-
             pos = 1
             for song in lt.iterator(result[0][0][1]):
                 if pos <= 10:
@@ -179,7 +177,7 @@ while True:
                 pos += 1
             print("Tiempo [ms]: ", f"{result[1][0]:.3f}", "  ||  ",  "Memoria [kB]: ", f"{result[1][1]:.3f}")
         except Exception:
-            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelv a intentarlo.')
+            print ('Ha surgido un error, asegurese de digitar los datos correctamente y vuelva a intentarlo.')
     else:
         sys.exit(0)
 sys.exit(0)

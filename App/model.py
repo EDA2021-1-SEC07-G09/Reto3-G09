@@ -156,7 +156,6 @@ def addTrack (map, song):
     lt.addLast(ltpista, song)
 
 def addHashtagProm(catalog, lstevent):
-    lst = lt.newList('ARRAY_LIST')
     for song in lt.iterator(lstevent):
         entry = mp.get(catalog['trackhashtag'],song['track_id'])
         dataentry = me.getValue(entry)
@@ -174,8 +173,6 @@ def addHashtagProm(catalog, lstevent):
                     prom += float(value)
         if num > 0:
             song['hashtag_avg'] = prom/num
-        lt.addLast(lst, song)
-    return lst
 
 # Funciones para creacion de datos
 def newSong (song, contexsong):

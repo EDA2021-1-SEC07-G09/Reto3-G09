@@ -38,27 +38,6 @@ def newCatalog ():
     catalog = model.newCatalog()
     return catalog
 # Funciones para la carga de datos
-def loadData1 (catalog):
-    songfile1 = cf.data_dir + 'Subsamples/user_track_hashtag_timestamp/user_track_hashtag_timestamp-small.csv'
-    input_file1 = csv.DictReader(open(songfile1, encoding='utf-8'), delimiter = ',')
-    songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-small.csv'
-    input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'), delimiter = ',')
-    #songfile3 = cf.data_dir + 'Subsamples/sentiment_values.csv'
-    #input_file3 = csv.DictReader(open(songfile3, encoding='utf-8'), delimiter=",")
-    model.createCharact(catalog)
-    model.createCharactSong(catalog)
-    '''for dicc in input_file3:
-        model.addHashtag(catalog['hashtags'], dicc)'''
-    for song in input_file1:
-        model.addTrack(catalog['tracksong'], song)
-    pos = 0
-    for song in input_file2:
-        issong = model.songByUserId(catalog,song, False)
-        if issong is not None:
-            if song['created_at'][11:] >= '07:15:00' and song['created_at'][11:] <= '09:45:00':
-                    pos += 1
-    return pos
-
 def loadData (catalog):
     delta_time = -1.0
     delta_memory = -1.0
@@ -68,11 +47,11 @@ def loadData (catalog):
     start_memory = getMemory()
 
     songfile1 = cf.data_dir + 'Subsamples/user_track_hashtag_timestamp/user_track_hashtag_timestamp-small.csv'
-    input_file1 = csv.DictReader(open(songfile1, encoding='utf-8'), delimiter = ',')
+    input_file1 = csv.DictReader(open(songfile1, encoding='utf-8'))
     songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-small.csv'
-    input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'), delimiter = ',')
+    input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'))
     songfile3 = cf.data_dir + 'Subsamples/sentiment_values.csv'
-    input_file3 = csv.DictReader(open(songfile3, encoding='utf-8'), delimiter=",")
+    input_file3 = csv.DictReader(open(songfile3, encoding='utf-8'))
     model.createCharact(catalog)
     model.createCharactSong(catalog)
     for dicc in input_file3:

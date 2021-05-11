@@ -218,8 +218,8 @@ def reprodGenreByTime (catalog, characteristics, range1):
     reprod = model.reprodByCharactRange(catalog, characteristics, range1)
     reprod = model.reprodGenreByTime(catalog, reprod[0])
     unictrack = model.unicTrackorArtist(catalog, reprod[1], 'track_id')
-    lstreprod = model.addHashtagProm(catalog, unictrack[0])
-    lstreprodsort = model.mergeSortVideos(lstreprod, lt.size(lstreprod), 'hashtag')[0]
+    model.addHashtagProm(catalog, unictrack[0])
+    lstreprodsort = model.mergeSortVideos(unictrack[0], lt.size(unictrack[0]), 'hashtag')[0]
     lstvalues = model.selectResults(lstreprodsort, 10, True)
     
     stop_memory = getMemory()

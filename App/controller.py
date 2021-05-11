@@ -50,7 +50,7 @@ def loadData (catalog):
     input_file1 = csv.DictReader(open(songfile1, encoding='utf-8'))
     songfile2 = cf.data_dir + 'Subsamples/context_content_features/context_content_features-small.csv'
     input_file2 = csv.DictReader(open(songfile2, encoding='utf-8'))
-    songfile3 = cf.data_dir + 'Subsamples/sentiment_values.csv'
+    songfile3 = cf.data_dir + 'Subsamples/sentiment_values/sentiment_values1.csv'
     input_file3 = csv.DictReader(open(songfile3, encoding='utf-8'))
     model.createCharact(catalog)
     model.createCharactSong(catalog)
